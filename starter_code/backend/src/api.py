@@ -117,6 +117,7 @@ def create_drinks(jwt):
             'success': True,
             'drinks': [new_drink.long()]
         }), 200
+
     except:
         return jsonify({
             'success': False,
@@ -149,7 +150,7 @@ def update_drink(jwt, id):
         if drink is None:
             return jsonify({
                 'success': False,
-                'error': "Drink not found"
+                'error': "Drink Not Found"
             }), 404
 
         # Get data to update
@@ -167,7 +168,7 @@ def update_drink(jwt, id):
         return jsonify({
             'success': True,
             'drinks': [drink.long()]
-        })
+        }), 200
 
     except:
         return jsonify({
@@ -192,6 +193,35 @@ def update_drink(jwt, id):
 '''
 Example error handling for unprocessable entity
 '''
+
+
+@app.route('/drinks/<int:id>', methods=['DELETE'])
+@requires_auth('delete:drinks')
+def delete_drink(jwt, id):
+    try:
+        # Get the drink to be deleted
+        drink = Drink.query.get(id)
+
+        # Check if drink exists
+        if drink is None:
+            return jsonify({
+                'success': False,
+                'error': "Drink Not Found"
+            }), 404
+
+        # Delete drink
+        drink.delete()
+
+        return jsonify({
+            'success': True,
+            'delete': drink.id
+        }), 200
+
+    except:
+        return jsonify({
+            'success': False,
+            'error': "An error has occurred"
+        }), 500
 
 
 @app.errorhandler(422)

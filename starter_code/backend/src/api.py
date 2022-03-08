@@ -21,7 +21,7 @@ db_drop_and_create_all()
 
 # ROUTES
 '''
-@TODO implement endpoint
+@TODO-DONE implement endpoint
     GET /drinks
         it should be a public endpoint
         it should contain only the drink.short() data representation
@@ -30,14 +30,52 @@ db_drop_and_create_all()
 '''
 
 
+@app.route('/drinks', methods=['GET'])
+def get_drinks():
+    try:
+        # Get all drinks
+        full_drinks_list = Drink.query.all()
+
+        # print("list... ")
+        # print(full_drinks_list)
+
+        return jsonify({
+            'success': True,
+            'drinks': [drink.short() for drink in full_drinks_list]
+        }), 200
+    except:
+        return jsonify({
+            'success': False,
+            'error': "An error has occurred"
+        }), 500
+
+
 '''
-@TODO implement endpoint
+@TODO-DONE implement endpoint
     GET /drinks-detail
         it should require the 'get:drinks-detail' permission
         it should contain the drink.long() data representation
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks-detail', methods=['GET'])
+@requires_auth('get:drinks-detail')
+def get_drink_detail(jwt):
+    try:
+        # Get all drinks
+        full_drinks_list = Drink.query.all()
+
+        return jsonify({
+            'success': True,
+            'drinks': [drink.long() for drink in full_drinks_list]
+        })
+    except:
+        return jsonify({
+            'success': False,
+            'error': "An error has occurred"
+        }), 500
 
 
 '''
@@ -51,6 +89,41 @@ db_drop_and_create_all()
 '''
 
 
+@app.route('/drinks', methods=['POST'])
+@requires_auth('post:drinks')
+def create_drinks(jwt):
+    try:
+        # Get new drink fields
+        body = request.get_json()
+        new_drink_title = body['title']
+        new_drink_recipe = json.dumps(body['recipe'])
+
+        # Check for empty fields
+        if new_drink_title is None or new_drink_recipe is None:
+            return jsonify({
+                'success': False,
+                'error': "Missing information: empty drink parameters"
+            }), 422
+
+        # Create new drink
+        new_drink = Drink()
+        new_drink.title = new_drink_title
+        new_drink.recipe = new_drink_recipe
+
+        # Add the new drink
+        new_drink.insert()
+
+        return jsonify({
+            'success': True,
+            'drinks': [new_drink.long()]
+        }), 200
+    except:
+        return jsonify({
+            'success': False,
+            'error': "An error has occurred"
+        }), 500
+
+
 '''
 @TODO implement endpoint
     PATCH /drinks/<id>
@@ -62,6 +135,45 @@ db_drop_and_create_all()
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks/<int:id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def update_drink(jwt, id):
+    try:
+
+        # Get the drink to be updated
+        drink = Drink.query.get(id)
+
+        # Check if drink exists
+        if drink is None:
+            return jsonify({
+                'success': False,
+                'error': "Drink not found"
+            }), 404
+
+        # Get data to update
+        body = request.get_json()
+
+        if 'title' in body:
+            drink.title = body['title']
+
+        if 'recipe' in body:
+            drink.recipe = json.dumps(body['recipe'])
+
+        # Update the drink
+        drink.update()
+
+        return jsonify({
+            'success': True,
+            'drinks': [drink.long()]
+        })
+
+    except:
+        return jsonify({
+            'success': False,
+            'error': "An error has occurred"
+        }), 500
 
 
 '''

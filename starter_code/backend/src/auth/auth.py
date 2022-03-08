@@ -4,6 +4,11 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
+# To temporarily fix following issue:
+#   urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED]
+#   certificate verify failed: unable to get local issuer certificate (_ssl.c:1129)>
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 AUTH0_DOMAIN = 'dev-yl9akfdv.us.auth0.com'
 ALGORITHMS = ['RS256']
@@ -72,7 +77,7 @@ def get_token_auth_header():
 
 
 '''
-@TODO implement check_permissions(permission, payload) method
+@TODO=DONE implement check_permissions(permission, payload) method
     @INPUTS
         permission: string permission (i.e. 'post:drink')
         payload: decoded jwt payload
@@ -101,7 +106,7 @@ def check_permissions(permission, payload):
 
 
 '''
-@TODO implement verify_decode_jwt(token) method
+@TODO=DONE implement verify_decode_jwt(token) method
     @INPUTS
         token: a json web token (string)
 
@@ -171,7 +176,7 @@ def verify_decode_jwt(token):
 
 
 '''
-@TODO implement @requires_auth(permission) decorator method
+@TODO=DONE implement @requires_auth(permission) decorator method
     @INPUTS
         permission: string permission (i.e. 'post:drink')
 
